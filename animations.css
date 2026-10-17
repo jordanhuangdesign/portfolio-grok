@@ -1,0 +1,101 @@
+/* ==========================================================================
+   Portfolio micro-animations (additive layer)
+   - Does not change layout, copy, colors, fonts, spacing or images.
+   - Animates only `opacity` and the individual `translate` / `scale`
+     properties (which compose with any inline transform the Figma runtime sets).
+   - Everything is gated by html.fx-motion, which animations.js only adds when
+     the user has NOT asked for reduced motion.
+   ========================================================================== */
+
+:root {
+  --fx-ease: cubic-bezier(.2, .7, .2, 1);
+  --fx-ease-soft: cubic-bezier(.45, 0, .2, 1);
+  --fx-reveal-dur: 720ms;
+  --fx-reveal-dist: 28px;
+}
+
+/* ---- Boot gate: avoid a one-frame flash before animations.js tags elements.
+        Failsafe reveals the page after 3s even if the script never boots. ---- */
+html.fx-motion:not(.fx-booted) #container {
+  opacity: 0;
+  animation: fx-failsafe .01s linear 3s forwards;
+}
+@keyframes fx-failsafe { to { opacity: 1; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.fx-motion { scroll-behavior: smooth; }
+
+  /* ---- 1. Hero / above-the-fold entrance on load ---- */
+  html.fx-motion [data-fx="hero"] {
+    animation: fx-rise 820ms var(--fx-ease) var(--fx-delay, 0ms) backwards;
+  }
+  html.fx-motion [data-fx-header] {
+    animation: fx-drop 700ms var(--fx-ease) 60ms backwards;
+  }
+
+  /* ---- 2. Scroll reveal (fade + slide up), staggered via --fx-delay ---- */
+  html.fx-motion [data-fx="reveal"]:not([data-fx-in]) {
+    opacity: 0 !important;           /* beats the runtime's inline opacity:1 */
+    translate: 0 var(--fx-reveal-dist);
+  }
+  html.fx-motion [data-fx="reveal"][data-fx-in] {
+    animation: fx-rise var(--fx-reveal-dur) var(--fx-ease) var(--fx-delay, 0ms) backwards;
+  }
+
+  /* ---- 3. Scroll cue chevron: drifts down + fades, resets to origin, loops ---- */
+  html.fx-motion [data-fx-cue] {
+    animation: fx-cue 1.9s var(--fx-ease-soft) 1.1s infinite;
+    will-change: translate, opacity;
+  }
+  html.fx-motion [data-fx-cue-btn]:hover [data-fx-cue] { animation-duration: 1.3s; }
+
+  /* ---- 4. Hover polish ---- */
+  /* Cards & project thumbnails: subtle lift */
+  html.fx-motion [data-fx-lift] {
+    transition: translate 480ms var(--fx-ease);
+  }
+  html.fx-motion [data-fx-lift]:hover { translate: 0 -6px; }
+
+  /* Image / video zoom inside its own clipped frame (wrapper is exactly the video's size) */
+  html.fx-motion [data-fx-zoom] { overflow: hidden; }
+  html.fx-motion [data-fx-zoom] > video,
+  html.fx-motion [data-fx-zoom-img] {
+    transition: scale 900ms var(--fx-ease);
+    transform-origin: 50% 50%;
+  }
+  html.fx-motion [data-fx-zoom]:hover > video,
+  html.fx-motion [data-fx-zoom-host]:hover [data-fx-zoom-img] { scale: 1.03; }
+
+  /* Header links: text dims slightly, icon nudges */
+  html.fx-motion [data-fx-link] > p { transition: opacity 240ms ease; }
+  html.fx-motion [data-fx-link]:hover > p { opacity: .78; }
+  html.fx-motion [data-fx-link] > div { transition: translate 300ms var(--fx-ease); }
+  html.fx-motion [data-fx-link="external"]:hover > div { translate: 2px -2px; }
+  html.fx-motion [data-fx-link="doc"]:hover > div { translate: 0 -2px; }
+
+  /* Buttons / CTA links: gentle lift + press */
+  html.fx-motion [data-fx-btn] { transition: translate 260ms var(--fx-ease), opacity 260ms ease; }
+  html.fx-motion [data-fx-btn]:hover { translate: 0 -2px; }
+  html.fx-motion [data-fx-btn]:active { translate: 0 0; opacity: .85; transition-duration: 90ms; }
+}
+
+@keyframes fx-rise {
+  from { opacity: 0; translate: 0 var(--fx-reveal-dist); }
+  to   { opacity: 1; translate: 0 0; }
+}
+@keyframes fx-drop {
+  from { opacity: 0; translate: 0 -10px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@keyframes fx-cue {
+  0%       { translate: 0 0;    opacity: 1; }
+  55%      { translate: 0 10px; opacity: 0; }
+  56%      { translate: 0 0;    opacity: 0; }
+  80%,100% { translate: 0 0;    opacity: 1; }
+}
+
+/* Reduced motion: never hide anything, never animate. */
+@media (prefers-reduced-motion: reduce) {
+  html.fx-motion:not(.fx-booted) #container { opacity: 1; animation: none; }
+  [data-fx], [data-fx-header], [data-fx-cue] { animation: none !important; }
+}

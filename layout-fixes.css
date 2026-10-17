@@ -1,0 +1,42 @@
+/* ==========================================================================
+   Offline-copy layout fix: bottom spacing on tablet & mobile ONLY.
+   Figma Sites gives each breakpoint frame a fixed page height taken from the
+   Figma frame (e.g. 6301px for the 375px mobile frame). When the browser is
+   wider than the design frame, text wraps onto fewer lines, the content gets
+   shorter, but the page keeps the fixed height -> a long empty area at the
+   bottom. These rules let the page end a fixed distance after the content:
+   80px on mobile (<800px), 120px on tablet (800-1279px).
+   Desktop (>=1280px) is untouched: no rule below applies there.
+   ========================================================================== */
+
+/* ---- Mobile (< 800px) ---- */
+@media (max-width: 799.98px) {
+  /* Case-study pages: content is one auto-height column, so size the page to it */
+  #container [data-breakpoint-id="node-15_2365"],
+  #container [data-breakpoint-id="node-56_42867"] {
+    height: auto !important;
+    padding-bottom: 80px !important;
+  }
+  #container [data-breakpoint-id="node-15_2365"] > :nth-child(2),
+  #container [data-breakpoint-id="node-56_42867"] > :nth-child(2) {
+    position: relative !important;
+  }
+  /* Homepage mobile already ends exactly 80px after the last card (1492 + 80 = 1572): no change */
+}
+
+/* ---- Tablet (800px - 1279px) ---- */
+@media (min-width: 800px) and (max-width: 1279.98px) {
+  #container [data-breakpoint-id="node-15_2364"],
+  #container [data-breakpoint-id="node-56_42590"] {
+    height: auto !important;
+    padding-bottom: 120px !important;
+  }
+  #container [data-breakpoint-id="node-15_2364"] > :nth-child(2),
+  #container [data-breakpoint-id="node-56_42590"] > :nth-child(2) {
+    position: relative !important;
+  }
+  /* Homepage tablet: fixed-position layout; last card ends at 2351px -> 2351 + 120 */
+  #container [data-breakpoint-id="node-8_114"] {
+    height: 2471px !important;
+  }
+}
